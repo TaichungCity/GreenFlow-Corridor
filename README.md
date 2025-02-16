@@ -1,4 +1,4 @@
-# 綠行幹道(GreenFlow-Corridor)
+# 一路綠燈(GreenFlow-Corridor)
 主幹道交通號誌時空圖模擬器 (Traffic Signal Time-Space Diagram Simulator)
 
 本模擬器是一個互動式交通號誌時空圖模擬系統，呈現主幹道路各路口的號誌時制狀態及優化時差，並以中觀模擬車輛在路口間的行駛與等待情形。  
@@ -42,7 +42,7 @@ A built-in Genetic Algorithm automatically optimizes the offsets between interse
 ## 操作流程 (Usage Workflow)
 
 ### 1. 開啟網頁 / Open the Webpage  
-以瀏覽器開啟 `GreenFlow-Corridor_綠行幹道.html`，系統自動載入左側參數設定區與右側的時空圖及動畫區。  
+以瀏覽器開啟 `GreenFlow-Corridor_一路綠燈.html`，系統自動載入左側參數設定區與右側的時空圖及動畫區。  
 Open `GreenFlow-Corridor_en.html` in your browser; the interface loads with the configuration panel on the left and the diagram and animation area on the right.
 
 ### 2. 參數設定 / Configure Parameters  
