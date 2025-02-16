@@ -1,4 +1,4 @@
-# 一路綠燈(GreenFlow-Corridor)
+# 一路綠燈(GreenFlow Corridor)
 主幹道交通號誌時空圖模擬器 (Traffic Signal Time-Space Diagram Simulator)
 
 本模擬器是一個互動式交通號誌時空圖模擬系統，呈現主幹道路各路口的號誌時制狀態及優化時差，並以中觀模擬車輛在路口間的行駛與等待情形。  
