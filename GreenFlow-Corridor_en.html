@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>GreenFlow Corridor</title>
+  <style>
+    /* -------------------------
+       全局重設與基本樣式
+       ------------------------- */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+    }
+    header {
+      background: #1f3c88;
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-sizing: border-box;
+    }
+    header h4 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .container {
+      display: flex;
+      height: calc(100vh - 60px); /* header 占 60px */
+      overflow: hidden;
+    }
+    /* 左側面板 */
+    #leftPanel {
+      width: 350px;
+      background: #f9f9f9;
+      overflow-y: auto;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+    /* 分隔線 */
+    #divider {
+      width: 5px;
+      background: #ccc;
+      cursor: col-resize;
+      /* 為了方便拖曳，可考慮增加左右內邊距 */
+    }
+    /* 右側面板 */
+    #rightPanel {
+      flex: 1;
+      background: #fff;
+      overflow-y: auto;
+      box-sizing: border-box;
+      padding: 10px;
+    }	
+    .controls-group {
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .controls-group h4 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .controls-inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .controls-inline.nowrap {
+      flex-wrap: nowrap;
+    }
+    .controls-inline label {
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .controls-inline input,
+    .controls-inline select {
+      margin-left: 5px;
+      padding: 4px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 50px;
+      box-sizing: border-box;
+    }
+	.controls-inline label {
+	  display: inline-flex;
+	  align-items: center;
+	  gap: 0;
+	}
+	.controls-inline label input[type="checkbox"] {
+	  width: 14px;
+	  height: 14px;
+	  margin: 2;
+	  padding: 2;
+	}
+    select#directionSelect, select#algorithmSelect, select#playbackSpeed {
+      width: 135px;
+    }
+    button {
+      background: #1f3c88;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+    }
+    button:hover {
+      background: #2a4fa8;
+    }
+    .button_green {
+      background: green;
+    }
+    .button_green:hover {
+      background: darkgreen;
+    }
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      background: #fff;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 5px;
+      text-align: center;
+      font-size: 13px;
+    }
+    /* 調整各欄位寬度 */
+    #intersectionTable thead th:nth-child(1) { width: 30px; }
+    #intersectionTable thead th:nth-child(2) { width: 55px; }
+    #intersectionTable thead th:nth-child(3) { width: 45px; }
+    #intersectionTable thead th:nth-child(4) { width: 50px; }
+    #intersectionTable thead th:nth-child(5) { width: 50px; }
+    #intersectionTable thead th:nth-child(6) { width: 50px; }
+    #intersectionTable thead th:nth-child(7) { width: 50px; }
+    #intersectionTable thead th:nth-child(8) { width: 50px; }
+    #intersectionTable thead th:nth-child(9) { width: 35px; }
+    #intersectionTable tbody td:nth-child(1) input { width: 30px; }
+    #intersectionTable tbody td:nth-child(2) input { width: 55px; }
+    #intersectionTable tbody td:nth-child(3) input { width: 45px; }
+    #intersectionTable tbody td:nth-child(4) input { width: 50px; }
+    #intersectionTable tbody td:nth-child(5) input { width: 50px; }
+    #intersectionTable tbody td:nth-child(6) input { width: 50px; }
+    #intersectionTable tbody td:nth-child(7) input { width: 50px; }
+    #intersectionTable tbody td:nth-child(8) input { width: 50px; }
+    /* 右側：Canvas 與資訊區 */
+    
+	/*#rightPanel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }*/
+    .canvas-wrapper {
+      display: flex;
+      gap: 5px;
+    }
+    .canvas-section {
+      background: #f9f9f9;
+      padding: 5px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .canvas-section.flex {
+      flex: 1;
+      margin-right: 20px;
+    }
+    .canvas-section.fixed {
+      width: 100px;
+      flex: none;
+    }
+    .canvas-section canvas {
+      display: block;
+      border: 1px solid #ccc;
+      background: #fff;
+      width: 100%;
+      height: 380px;
+      box-sizing: border-box;
+    }
+    .canvas-controls {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .animation-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .animation-controls label {
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .animation-controls select {
+      width: 50px !important;
+      margin-left: 5px;
+      padding: 4px;
+      font-size: 14px;
+    }
+    .animation-controls button {
+      margin-top: 5px;
+    }
+    .info-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .info-area > div {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      border: 1px solid #dee2e6;
+      font-size: 14px;
+      flex: 1;
+      min-width: 250px;
+      box-sizing: border-box;
+    }
+    .info-area h3 {
+      margin-top: 0;
+      font-size: 16px;
+    }
+    #coordDisplay {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      font-size: 12px;
+      display: none;
+      border-radius: 4px;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(128,128,128,0.3);
+      display: none;
+      z-index: 9999;
+    }
+    #loadingSpinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+  </style>
+  <script>
+/* ============================================================================
+   1. 優化演算法 (Genetic / Heuristic / Exact) 相關函數
+   ※ 優化的部分僅調整時差，週期採用每路口週期上限＝ max(出城週期, 進城週期)
+*/
+async function optimizeOffsetsGenetic(){  
+  const intersections = readIntersectionsFromTable();
+  if(intersections.length < 2){
+    alert("請至少保留2個路口！");
+    return;
+  }
+  // 讀取 ratioGoal, alpha
+  const ratioGoal = parseFloat(document.getElementById("ratioGoalInput").value) || 1.0;
+  const alpha = 100;
+
+  // 取得 cycle array：每個路口以 max(出城週期, 進城週期)
+  const cycles = intersections.map(i => Math.max(i.outG + i.outR, i.inG + i.inR));
+
+  // GA 參數
+  const populationSize = 30;
+  const generations    = 100;
+  const crossRate      = 0.7;
+  const mutationRate   = 0.1;
+
+  // 初始化族群
+  let population = [];
+  for(let i=0; i< populationSize; i++){
+    const offsets = generateRandomOffsets(cycles);
+    population.push(offsets);
+  }
+
+  let bestFitness = -999999;
+  let bestChrom   = null;
+  let bestRatio   = 1;
+
+  objectiveHistory = [];
+  ratioHistory     = [];
+
+  const chunkSize = 5;
+  let generation = 0;
+  while(generation < generations){
+    const endGen = Math.min(generations, generation + chunkSize);
+    for(; generation < endGen; generation++){
+      const fitnesses = population.map(chrom => {
+        applyOffsets(intersections, chrom);
+        const ret = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+        return ret.objective;
+      });
+      for(let i=0; i< populationSize; i++){
+        if(fitnesses[i] > bestFitness){
+          bestFitness = fitnesses[i];
+          bestChrom   = population[i].slice();
+          applyOffsets(intersections, bestChrom);
+          const ret2 = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+          bestRatio = ret2.ratioVal;
+        }
+      }
+      population = breedNewPopulation(population, fitnesses, cycles, crossRate, mutationRate);
+    }
+    objectiveHistory.push(bestFitness);
+    ratioHistory.push(bestRatio);
+    await new Promise(r => setTimeout(r,0));
+  }
+  if(!bestChrom){
+    alert("GA: 找不到更佳解？");
+    return;
+  }
+  applyOffsets(intersections, bestChrom);
+  intersections.sort((a,b) => a.distance - b.distance);
+  const tbody = document.getElementById("intersectionTableBody");
+  const rows = Array.from(tbody.rows);
+  for(let i=0; i< intersections.length; i++){
+    rows[i].cells[7].querySelector("input").value = intersections[i].offset;
+  }
+  updateIndexLabels();
+  drawTimeSpaceDiagram();
+  const final = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+  document.getElementById("finalSumVal").textContent = final.sumVal.toFixed(1);
+  document.getElementById("finalOutInRatio").textContent = (final.ratioVal >= 9999 ? "∞" : final.ratioVal.toFixed(2));
+  alert(`[Genetic] 完成! objective= ${bestFitness.toFixed(1)}, ratio=${bestRatio.toFixed(2)}`);
+  drawChartObjective(objectiveHistory);
+  drawChartRatio(ratioHistory, ratioGoal);
+
+  function generateRandomOffsets(cycles){
+    const arr = Array(cycles.length).fill(0);
+    arr[0] = 0; 
+    for(let i=1; i< cycles.length; i++){
+      arr[i] = Math.floor(Math.random() * cycles[i]);
+    }
+    return arr;
+  }
+  function applyOffsets(intersects, offsets){
+    for(let i=0; i< intersects.length; i++){
+      intersects[i].offset = offsets[i];
+    }
+  }
+  function breedNewPopulation(oldPop, oldFit, cyc, crossRate, mutRate){
+    const fitSum = oldFit.reduce((a,b) => a + b, 0);
+    const newPop = [];
+    while(newPop.length < oldPop.length){
+      const p1 = selectOne(oldPop, oldFit, fitSum);
+      const p2 = selectOne(oldPop, oldFit, fitSum);
+      let c1 = p1.slice();
+      let c2 = p2.slice();
+      if(Math.random() < crossRate){
+        const crossPoint = 1 + Math.floor(Math.random() * (p1.length - 1));
+        for(let i = crossPoint; i < p1.length; i++){
+          [c1[i], c2[i]] = [c2[i], c1[i]];
+        }
+      }
+      c1 = mutate(c1, cyc, mutRate);
+      c2 = mutate(c2, cyc, mutRate);
+      newPop.push(c1, c2);
+    }
+    return newPop.slice(0, oldPop.length);
+  }
+  function selectOne(pop, fits, fitSum){
+    const r = Math.random() * fitSum;
+    let accum = 0;
+    for(let i=0; i< pop.length; i++){
+      accum += fits[i];
+      if(accum >= r) return pop[i];
+    }
+    return pop[pop.length - 1];
+  }
+  function mutate(chrom, cyc, mutRate){
+    for(let i=1; i< chrom.length; i++){
+      if(Math.random() < mutRate){
+        chrom[i] = Math.floor(Math.random() * cyc[i]);
+      }
+    }
+    return chrom;
+  }
+}
+
+/* 其他優化函數（Exact、Heuristic）修改方式與 GA 類似，此處略，完整代碼中亦包含 */
+async function optimizeOffsetsExact(){
+  objectiveHistory = [];
+  ratioHistory = [];
+  const intersections = readIntersectionsFromTable();
+  if(intersections.length < 2){
+    alert("請至少保留2個路口！");
+    return;
+  }
+  intersections[0].offset = 0;
+  const ratioGoal = parseFloat(document.getElementById("ratioGoalInput").value) || 1.0;
+  const alpha = 100;
+  let bestObj = -999999;
+  let bestRatio = 1;
+  let bestOffsets = null;
+  const cycles = intersections.map(i => Math.max(i.outG + i.outR, i.inG + i.inR));
+  const initOffset = Array(intersections.length).fill(0);
+  initOffset[0] = 0;
+  const stack = [];
+  stack.push({ idx: 1, offsetVec: initOffset });
+  const chunkSize = 1000;
+  while(stack.length > 0){
+    const chunkCount = Math.min(stack.length, chunkSize);
+    for(let c = 0; c < chunkCount; c++){
+      const { idx, offsetVec } = stack.pop();
+      if(idx >= intersections.length){
+        for(let i=0; i< intersections.length; i++){
+          intersections[i].offset = offsetVec[i];
+        }
+        const ret = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+        if(ret.objective > bestObj){
+          bestObj = ret.objective;
+          bestRatio = ret.ratioVal;
+          bestOffsets = offsetVec.slice();
+        }
+      } else {
+        const cyc = cycles[idx];
+        for(let v = 0; v < cyc; v++){
+          const newVec = offsetVec.slice();
+          newVec[idx] = v;
+          stack.push({ idx: idx + 1, offsetVec: newVec });
+        }
+      }
+    }
+    objectiveHistory.push(bestObj);
+    ratioHistory.push(bestRatio);
+    await new Promise(r => setTimeout(r,0));
+  }
+  if(!bestOffsets){
+    alert("優化失敗(無解)!");
+    return;
+  }
+  for(let i=0; i< intersections.length; i++){
+    intersections[i].offset = bestOffsets[i];
+  }
+  intersections.sort((a,b) => a.distance - b.distance);
+  const tbody = document.getElementById("intersectionTableBody");
+  const rows = Array.from(tbody.rows);
+  for(let i=0; i< intersections.length; i++){
+    rows[i].cells[7].querySelector("input").value = intersections[i].offset;
+  }
+  updateIndexLabels();
+  drawTimeSpaceDiagram();
+  const ret = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+  document.getElementById("finalSumVal").textContent = ret.sumVal.toFixed(1);
+  document.getElementById("finalOutInRatio").textContent = (ret.ratioVal>=9999 ? "∞" : ret.ratioVal.toFixed(2));
+  alert(`[Exact] 完成! objective=${ret.objective.toFixed(1)}`);
+  drawChartObjective(objectiveHistory);
+  drawChartRatio(ratioHistory, ratioGoal);
+}
+
+async function optimizeOffsetsHeuristic(){
+  const intersections = readIntersectionsFromTable();
+  if(intersections.length < 2){
+    alert("請至少保留2個路口！");
+    return;
+  }
+  intersections[0].offset = 0;
+  const ratioGoal = parseFloat(document.getElementById("ratioGoalInput").value) || 1.0;
+  const alpha = 100;
+  objectiveHistory = [];
+  ratioHistory = [];
+  const cycles = intersections.map(i => Math.max(i.outG + i.outR, i.inG + i.inR));
+  const offsetVec = intersections.map((ints, idx) => { if(idx===0)return 0; return Math.floor(Math.random()* (Math.max(ints.outG+ints.outR, ints.inG+ints.inR))); });
+  let bestOffsets = offsetVec.slice();
+  let bestObj = -999999;
+  let bestRatio = 1;
+  function computeObj(vec){
+    for(let i=0; i< intersections.length; i++){
+      intersections[i].offset = vec[i];
+    }
+    const ret = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+    return { objective: ret.objective, ratio: ret.ratioVal };
+  }
+  {
+    const { objective, ratio } = computeObj(offsetVec);
+    bestObj = objective;
+    bestRatio = ratio;
+  }
+  const iterMax = 20000;
+  const chunkSize = 500;
+  let iteration = 0;
+  while(iteration < iterMax){
+    const endIter = Math.min(iterMax, iteration + chunkSize);
+    for(; iteration < endIter; iteration++){
+      const neighborCount = 3;
+      for(let n=0; n< neighborCount; n++){
+        const idx = 1 + Math.floor(Math.random()*(intersections.length-1));
+        const oldVal = offsetVec[idx];
+        const cyc = cycles[idx];
+        let newVal = oldVal + (Math.floor(Math.random()*21)-10);
+        if(newVal < 0) newVal += cyc;
+        if(newVal >= cyc) newVal = newVal % cyc;
+        offsetVec[idx] = newVal;
+        const { objective, ratio } = computeObj(offsetVec);
+        if(objective > bestObj){
+          bestObj = objective;
+          bestRatio = ratio;
+          bestOffsets = offsetVec.slice();
+        } else {
+          offsetVec[idx] = oldVal;
+        }
+      }
+    }
+    objectiveHistory.push(bestObj);
+    ratioHistory.push(bestRatio);
+    await new Promise(r => setTimeout(r,0));
+  }
+  for(let i=0; i< intersections.length; i++){
+    intersections[i].offset = bestOffsets[i];
+  }
+  intersections.sort((a,b) => a.distance - b.distance);
+  const tbody = document.getElementById("intersectionTableBody");
+  const rows = Array.from(tbody.rows);
+  for(let i=0; i< intersections.length; i++){
+    rows[i].cells[7].querySelector("input").value = intersections[i].offset;
+  }
+  updateIndexLabels();
+  drawTimeSpaceDiagram();
+  const ret = computeObjectiveAndRatio(intersections, ratioGoal, alpha);
+  document.getElementById("finalSumVal").textContent = ret.sumVal.toFixed(1);
+  document.getElementById("finalOutInRatio").textContent = (ret.ratioVal>=9999 ? "∞" : ret.ratioVal.toFixed(2));
+  alert(`[Heuristic] 完成! objective=${bestObj.toFixed(1)}, ratio=${bestRatio.toFixed(2)}`);
+  drawChartObjective(objectiveHistory);
+  drawChartRatio(ratioHistory, ratioGoal);
+}
+
+/* ============================================================================
+   2. 路口資料的新增、匯出與匯入
+============================================================================ */
+const defaultIntersections = [
+  { name: "路口A", distance: 0,   outG: 60, outR: 0, inG: 60, inR: 0, offset: 0 },
+  { name: "路口B", distance: 400, outG: 60, outR: 30, inG: 60, inR: 30, offset: 0 },
+  { name: "路口C", distance: 800, outG: 60, outR: 0, inG: 60, inR: 0, offset: 0 },
+];
+
+window.addEventListener("DOMContentLoaded", () => {
+  defaultIntersections.forEach((ints)=>{
+    addIntersectionRow(ints.name, ints.distance, ints.outG, ints.outR, ints.inG, ints.inR, ints.offset);
+  });
+  document.getElementById("addRowBtn").addEventListener("click", () => {
+    addIntersectionRow("路口名稱", 1000, 60, 30, 60, 30, 0);
+  });
+  document.getElementById("exportJsonBtn").addEventListener("click", exportToJson);
+  document.getElementById("importJsonBtn").addEventListener("click", importFromJson);
+  const canvas = document.getElementById("timeSpaceCanvas");
+  canvas.addEventListener("mousemove", onCanvasMouseMove);
+  canvas.addEventListener("mouseout", () => {
+    document.getElementById("coordDisplay").style.display = "none";
+  });
+  document.getElementById("optimizeOffsetsBtn").addEventListener("click", optimizeOffsets);
+  drawTimeSpaceDiagram();
+});
+
+function addIntersectionRow(name, distance, outG, outR, inG, inR, offset) {
+  const tbody = document.getElementById("intersectionTableBody");
+  const rowCount = tbody.rows.length;
+  const tr = document.createElement("tr");
+  // 編號
+  const tdIndex = document.createElement("td");
+  tdIndex.textContent = rowCount + 1;
+  tr.appendChild(tdIndex);
+  // 名稱
+  const tdName = document.createElement("td");
+  const inpName = document.createElement("input");
+  inpName.type = "text";
+  inpName.value = name;
+  tdName.appendChild(inpName);
+  tr.appendChild(tdName);
+  // 距離
+  const tdDist = document.createElement("td");
+  const inpDist = document.createElement("input");
+  inpDist.type = "number";
+  inpDist.value = distance;
+  tdDist.appendChild(inpDist);
+  tr.appendChild(tdDist);
+  // 出城綠燈秒數
+  const tdOutG = document.createElement("td");
+  const inpOutG = document.createElement("input");
+  inpOutG.type = "number";
+  inpOutG.value = outG;
+  tdOutG.appendChild(inpOutG);
+  tr.appendChild(tdOutG);
+  // 出城紅燈秒數
+  const tdOutR = document.createElement("td");
+  const inpOutR = document.createElement("input");
+  inpOutR.type = "number";
+  inpOutR.value = outR;
+  tdOutR.appendChild(inpOutR);
+  tr.appendChild(tdOutR);
+  // 進城綠燈秒數
+  const tdInG = document.createElement("td");
+  const inpInG = document.createElement("input");
+  inpInG.type = "number";
+  inpInG.value = inG;
+  tdInG.appendChild(inpInG);
+  tr.appendChild(tdInG);
+  // 進城紅燈秒數
+  const tdInR = document.createElement("td");
+  const inpInR = document.createElement("input");
+  inpInR.type = "number";
+  inpInR.value = inR;
+  tdInR.appendChild(inpInR);
+  tr.appendChild(tdInR);
+  // 時差
+  const tdOffset = document.createElement("td");
+  const inpOffset = document.createElement("input");
+  inpOffset.type = "number";
+  inpOffset.value = offset;
+  tdOffset.appendChild(inpOffset);
+  tr.appendChild(tdOffset);
+  // 刪除按鈕
+  const tdDel = document.createElement("td");
+  const btnDel = document.createElement("button");
+  btnDel.textContent = "X";
+  btnDel.addEventListener("click", () => {
+    tbody.removeChild(tr);
+    updateIndexLabels();
+  });
+  tdDel.appendChild(btnDel);
+  tr.appendChild(tdDel);
+  tbody.appendChild(tr);
+  drawTimeSpaceDiagram();
+}
+
+function updateIndexLabels(){
+  const tbody = document.getElementById("intersectionTableBody");
+  Array.from(tbody.rows).forEach((row,i)=>{
+    row.cells[0].textContent = i + 1;
+  });
+}
+
+function exportToJson(){
+  // 先讀取頁面上的輸入欄位
+  const speedKmh       = parseFloat(document.getElementById("speedInputKmh").value) || 54;
+  const cycleMultiple  = parseFloat(document.getElementById("cycleMultipleInput").value) || 2;
+  const showChucheng   = document.getElementById("showChuchengCheck").checked;
+  const showJincheng   = document.getElementById("showJinchengCheck").checked;
+  
+  // **新增：讀取 ratioGoalInput**
+  const ratioGoal      = parseFloat(document.getElementById("ratioGoalInput").value) || 1.0;
+
+  // 取得目前表格中的路口資料 (假設您已有函式 readIntersectionsFromTable)
+  const intersections = readIntersectionsFromTable();
+
+  // 建立要輸出的物件
+  const data = {
+    speedKmh,
+    cycleMultiple,
+    showChucheng,
+    showJincheng,
+    ratioGoal,            // <--- 新增此欄位
+    intersections
+  };
+
+  // 將物件轉為 JSON 字串
+  const jsonStr = JSON.stringify(data, null, 2);
+
+  // 以 Blob 方式觸發下載
+  const blob = new Blob([jsonStr], {type:"application/json"});
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href  = url;
+  link.download = "traffic_params.json";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function importFromJson(){
+  const fileInput = document.createElement("input");
+  fileInput.type  = "file";
+  fileInput.accept= "application/json";
+  
+  fileInput.addEventListener("change",(e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt)=>{
+      try {
+        const text = evt.target.result;
+        const parsed = JSON.parse(text);
+        applyImportedData(parsed); // 將 JSON 資料套用
+      } catch(err) {
+        alert("匯入失敗：JSON 解析錯誤\n"+ err);
+      }
+    };
+    reader.readAsText(file);
+  });
+  fileInput.click();
+}
+
+function applyImportedData(jsonData){
+  // speedKmh
+  if(typeof jsonData.speedKmh==="number"){
+    document.getElementById("speedInputKmh").value= jsonData.speedKmh;
+  }
+  // cycleMultiple
+  if(typeof jsonData.cycleMultiple==="number"){
+    document.getElementById("cycleMultipleInput").value= jsonData.cycleMultiple;
+  }
+  // showChucheng, showJincheng
+  if(typeof jsonData.showChucheng==="boolean"){
+    document.getElementById("showChuchengCheck").checked= jsonData.showChucheng;
+  }
+  if(typeof jsonData.showJincheng==="boolean"){
+    document.getElementById("showJinchengCheck").checked= jsonData.showJincheng;
+  }
+
+  // **新增：ratioGoal**
+  if(typeof jsonData.ratioGoal==="number"){
+    document.getElementById("ratioGoalInput").value= jsonData.ratioGoal;
+  }
+
+  // intersections
+  const tbody= document.getElementById("intersectionTableBody");
+  tbody.innerHTML="";
+  if(Array.isArray(jsonData.intersections)){
+    jsonData.intersections.forEach(item=>{
+      const name = (typeof item.name === "string") ? item.name : "路口";
+      const dist = (typeof item.distance === "number") ? item.distance : 0;
+      const outG = (typeof item.outG === "number") ? item.outG : 30;
+      const outR = (typeof item.outR === "number") ? item.outR : 30;
+      const inG = (typeof item.inG === "number") ? item.inG : 30;
+      const inR = (typeof item.inR === "number") ? item.inR : 30;
+      const off = (typeof item.offset === "number") ? item.offset : 0;
+      addIntersectionRow(name, dist, outG, outR, inG, inR, off);
+    });
+  }
+  
+  updateIndexLabels(); // 若您已有此函式用來更新表格編號
+  alert("成功匯入 JSON 參數！ Successfully imported JSON parameters!");
+}
+
+
+/* ============================================================================
+   3. 時空圖繪製與信號顯示
+============================================================================ */
+function drawTimeSpaceDiagram(){
+  if(isAnimating) {
+    animationData = [];
+    stopAnimation();
+    document.getElementById("animateButton").textContent = "Play Animation";
+  }
+  const speedKmh = parseFloat(document.getElementById("speedInputKmh").value) || 60;
+  const speed = speedKmh / 3.6;
+  const cycleMultiple = parseFloat(document.getElementById("cycleMultipleInput").value) || 2;
+  const showChucheng = document.getElementById("showChuchengCheck").checked;
+  const showJincheng = document.getElementById("showJinchengCheck").checked;
+  const intersections = readIntersectionsFromTable();
+  if(intersections.length < 1){
+    alert("請至少設定一個路口！");
+    return;
+  }
+  let maxCycle = 0;
+  intersections.forEach(obj => {
+    const cyc = Math.max(obj.outG + obj.outR, obj.inG + obj.inR);
+    if(cyc > maxCycle) maxCycle = cyc;
+  });
+  const totalDistance = intersections[intersections.length - 1].distance;
+  const tMax = maxCycle * cycleMultiple;
+  const canvas = document.getElementById("timeSpaceCanvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, W, H);
+  function toCanvasX(t) {
+    return 40 + (t / tMax) * (W - 80);
+  }
+  function toCanvasY(dist) {
+    const usableHeight = H - 80;
+    return (H - 40) - (dist / totalDistance) * usableHeight;
+  }
+  drawAxes(ctx, toCanvasX, toCanvasY, tMax, totalDistance, W, H);
+  drawGreenBand(ctx, intersections, speed, toCanvasX, toCanvasY, tMax, showChucheng, showJincheng);
+  drawSignalStatus(ctx, intersections, toCanvasX, toCanvasY, tMax);  
+  drawIntersectionLabels(ctx, intersections, toCanvasY, W);
+  const interval = parseInt(document.getElementById("intervalInput").value) || 5;
+  const endTime = parseInt(document.getElementById("timeRangeInput").value) || 300;
+  const direction = document.getElementById("directionSelect").value;
+  let stats_outbound = null;
+  let stats_inbound = null;
+  let vehicles_out = [];
+  let vehicles_in = [];
+  if(direction === "outbound" || direction === "both") {
+    vehicles_out = generateVehicles(0, endTime, interval);
+    stats_outbound = calculateVehicleStats(vehicles_out, intersections, speed, endTime);
+    vehicles_out.forEach(v => v.direction = 'outbound');
+    drawVehicleTrajectories(ctx, vehicles_out, intersections, speed, toCanvasX, toCanvasY);
+  }
+  if(direction === "inbound" || direction === "both") {
+    vehicles_in = generateVehicles(0, endTime, interval);
+    stats_inbound = calculateVehicleStats_inBound(vehicles_in, intersections, speed, endTime);
+    vehicles_in.forEach(v => v.direction = 'inbound');
+    drawVehicleTrajectories(ctx, vehicles_in, intersections, speed, toCanvasX, toCanvasY);
+  }
+  window.currentVehicles = [...vehicles_out, ...vehicles_in];
+  if(direction === "outbound" || direction === "both") {
+    updateStatsDisplay(stats_outbound);
+  }
+  if(direction === "inbound" || direction === "both") {
+    updateStatsDisplay_inbound(stats_inbound);
+  }
+  const chuchengWidth = showChucheng ? computeGreenBandWidth('outbound', intersections, speed) : 0;
+  const jinchengWidth = showJincheng ? computeGreenBandWidth('inbound', intersections, speed) : 0;
+  const chuBlock = document.getElementById("chuchengWidthBlock");
+  if(showChucheng){
+    chuBlock.style.display = "block";
+    document.getElementById("greenBandChucheng").textContent = chuchengWidth.toFixed(1);
+  } else {
+    chuBlock.style.display = "none";
+  }
+  const jinBlock = document.getElementById("jinchengWidthBlock");
+  if(showJincheng){
+    jinBlock.style.display = "block";
+    document.getElementById("greenBandJincheng").textContent = jinchengWidth.toFixed(1);
+  } else {
+    jinBlock.style.display = "none";
+  }
+  document.getElementById("finalSumVal").textContent = (chuchengWidth + jinchengWidth).toFixed(1);
+  document.getElementById("finalOutInRatio").textContent = (chuchengWidth / (jinchengWidth || 1)).toFixed(1);
+}
+
+function readIntersectionsFromTable(){
+  const tbody = document.getElementById("intersectionTableBody");
+  const rows = Array.from(tbody.rows);
+  return rows.map(row => {
+    const name = row.cells[1].querySelector("input").value.trim();
+    const distance = parseFloat(row.cells[2].querySelector("input").value) || 0;
+    const outG = parseFloat(row.cells[3].querySelector("input").value) || 0;
+    const outR = parseFloat(row.cells[4].querySelector("input").value) || 0;
+    const inG = parseFloat(row.cells[5].querySelector("input").value) || 0;
+    const inR = parseFloat(row.cells[6].querySelector("input").value) || 0;
+    const offset = parseFloat(row.cells[7].querySelector("input").value) || 0;
+    return { name, distance, outG, outR, inG, inR, offset };
+  }).sort((a,b) => a.distance - b.distance);
+}
+
+function drawAxes(ctx, toCanvasX, toCanvasY, tMax, totalDistance, W, H){
+  ctx.save();
+  ctx.strokeStyle="#999";
+  ctx.lineWidth=1;
+  ctx.strokeRect(40,40, W-80, H-80);
+  const stepT = Math.max(10, tMax/5);
+  for(let t=0; t<=tMax; t+=stepT){
+    const xPos = toCanvasX(t);
+    ctx.beginPath();
+    ctx.moveTo(xPos,40);
+    ctx.lineTo(xPos,H-40);
+    ctx.stroke();
+    ctx.fillStyle="#000";
+    ctx.fillText(t+"s", xPos-10, H-25);
+  }
+  const stepD = Math.max(100, totalDistance/5);
+  for(let dist=0; dist<= totalDistance; dist+= stepD){
+    const yPos = toCanvasY(dist);
+    ctx.beginPath();
+    ctx.moveTo(40,yPos);
+    ctx.lineTo(W-40,yPos);
+    ctx.stroke();
+    ctx.fillStyle="#000";
+    ctx.fillText(dist+"m", 5,yPos+3);
+  }
+  ctx.restore();
+  timeAxisYPosition = H-40;
+}
+
+/* 以下新增兩個函數，分別用來檢查各方向全綠 */
+function checkAllGreenOutbound(intersections, speed, t0){
+  for(let i=0; i<intersections.length; i++){
+    const ints = intersections[i];
+    const cyc = ints.outG + ints.outR;
+    const arrival = t0 + (ints.distance / speed);
+    const modT = ((arrival - ints.offset) % cyc + cyc) % cyc;
+    if(modT >= ints.outG) return false;
+  }
+  return true;
+}
+function checkAllGreenInbound(intersections, speed, t0){
+  const maxDist = intersections[intersections.length-1].distance;
+  for(let i=intersections.length-1; i>=0; i--){
+    const ints = intersections[i];
+    const cyc = ints.inG + ints.inR;
+    const arrival = t0 + ((maxDist - ints.distance)/ speed);
+    const modT = ((arrival - ints.offset) % cyc + cyc) % cyc;
+    if(modT >= ints.inG) return false;
+  }
+  return true;
+}
+
+function drawSignalStatus(ctx, intersections, toCanvasX, toCanvasY, tMax){
+  const delta = 1.5; // 垂直偏移量
+  intersections.forEach(ints => {
+    // 出城信號
+    const cycleOut = ints.outG + ints.outR;
+    const yOut = toCanvasY(ints.distance) + delta;
+    for(let t=0; t< tMax; t+=0.5){
+      const localT = ((t - ints.offset) % cycleOut + cycleOut) % cycleOut;
+      const color = (localT < ints.outG) ? "green" : "red";
+      const x1 = toCanvasX(t);
+      const x2 = toCanvasX(t+0.5);
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x1, yOut);
+      ctx.lineTo(x2, yOut);
+      ctx.stroke();
+    }
+    // 進城信號
+    const cycleIn = ints.inG + ints.inR;
+    const yIn = toCanvasY(ints.distance) - delta;
+    for(let t=0; t< tMax; t+=0.5){
+      const localT = ((t - ints.offset) % cycleIn + cycleIn) % cycleIn;
+      const color = (localT < ints.inG) ? "green" : "red";
+      const x1 = toCanvasX(t);
+      const x2 = toCanvasX(t+0.5);
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x1, yIn);
+      ctx.lineTo(x2, yIn);
+      ctx.stroke();
+    }
+  });
+}
+
+function drawGreenBand(ctx, intersections, speed, toCanvasX, toCanvasY, tMax, showChucheng, showJincheng){
+  ctx.save();
+  ctx.globalAlpha= 0.5;
+  ctx.lineWidth= 5;
+  const maxDist = intersections[intersections.length-1].distance;
+  const dt0 = 0.5;
+  const delta = 5;
+  for(let t0=0; t0<= tMax; t0+= dt0){
+    if(showChucheng && checkAllGreenOutbound(intersections, speed, t0)){
+      const x1 = toCanvasX(t0);
+      const y1 = toCanvasY(0) - delta;
+      const x2 = toCanvasX(t0 + maxDist/speed);
+      const y2 = toCanvasY(maxDist) - delta;
+      ctx.strokeStyle = "lightblue";
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+    }
+    if(showJincheng && checkAllGreenInbound(intersections, speed, t0)){
+      const x1 = toCanvasX(t0);
+      const y1 = toCanvasY(maxDist) + delta;
+      const x2 = toCanvasX(t0 + maxDist/speed);
+      const y2 = toCanvasY(0) + delta;
+      ctx.strokeStyle = "lightgreen";
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawIntersectionLabels(ctx, intersections, toCanvasY, W){
+  ctx.save();
+  ctx.fillStyle="#000";
+  ctx.font="14px sans-serif";
+  ctx.textAlign="left";
+  ctx.textBaseline="middle";
+  const labelX = W-30;
+  intersections.forEach((ints,i)=>{
+    const yPx = toCanvasY(ints.distance);
+    const label = "["+(i+1)+"]";
+    ctx.fillText(label, labelX, yPx);
+  });
+  ctx.restore();
+}
+
+function gcd(a,b){return b===0? a: gcd(b,a%b);}
+function lcm(a,b){return (a*b)/ gcd(a,b);}
+function lcmOfArray(arr){
+  if(!arr||arr.length===0)return 1;
+  let res = arr[0];
+  for(let i=1;i< arr.length;i++){
+    res = lcm(res, arr[i]);
+  }
+  return res;
+}
+function readSpeedMps(){
+  const speedKmh = parseFloat(document.getElementById("speedInputKmh").value)||54;
+  return speedKmh/3.6;
+}
+
+/* ============================================================================
+   4. 車輛軌跡與統計（分出城、進城，分別用不同信號參數）
+============================================================================ */
+function generateVehicles(startTime, endTime, interval) {
+  const vehicles = [];
+  for (let t = startTime; t <= endTime; t += interval) {
+    vehicles.push({
+      departureTime: t,
+      trajectories: [],
+      status: "pending"
+    });
+  }
+  return vehicles.sort((a, b) => a.departureTime - b.departureTime);
+}
+
+/*****************************************************
+  全域常數與輔助函式
+*****************************************************/
+const TOLERANCE        = 0.001;  // 到達判斷的容差 (公尺)
+const SIGNAL_TOLERANCE = 0.01;   // 信號轉換的時間容差 (秒)
+const DISCHARGE_RATE   = 2;      // 車輛放行間隔 (秒)
+const VEHICLE_LENGTH   = 7;      // 車輛長度 (公尺)
+
+/**
+ * 將 newEntry 依照 dischargeTime 由小到大插入 queue
+ */
+function insertSorted(queue, newEntry) {
+  const index = queue.findIndex(v => v.dischargeTime > newEntry.dischargeTime);
+  if (index === -1) queue.push(newEntry);
+  else queue.splice(index, 0, newEntry);
+}
+
+/*****************************************************
+  出城方向的車輛通過軌跡計算
+*****************************************************/
+function calculateVehicleStats(vehicles, intersections, speed, endTime) {
+  const intersectionStates = intersections.map(() => ({
+    lastDischargeEnd: 0,
+    currentQueue: [],
+    dischargedVehicles: 0
+  }));
+  let totalArrivals = 0;
+  let totalWaitingTime = 0;
+  
+  vehicles.forEach((vehicle) => {
+    let currentTime = vehicle.departureTime;
+    let currentPosition = 0;
+    vehicle.trajectories = [];
+    let isBlocked = false;
+    
+    for (let i = 0; i < intersections.length; i++) {
+      const int = intersections[i];
+      const state = intersectionStates[i];
+      const distanceToIntersection = int.distance - currentPosition;
+      const moveTime = distanceToIntersection / speed;
+      const arrivalTime = currentTime + moveTime;
+      if (arrivalTime > endTime) { isBlocked = true; break; }
+      
+      const cycle = int.outG + int.outR;
+      const cycleStart = Math.floor((arrivalTime - int.offset) / cycle) * cycle + int.offset;
+      const phaseTime = arrivalTime - cycleStart;
+      const isRed = phaseTime >= int.outG || phaseTime < 0;
+      const isGreen = !isRed;
+      const nextGreen = isRed ? cycleStart + cycle : cycleStart;
+      
+      let canMerge = false;
+      if (state.currentQueue.length > 0) {
+        const lastVehicle = state.currentQueue[state.currentQueue.length - 1];
+        const isLastVehicleReleased = (arrivalTime - lastVehicle.dischargeTime) >= DISCHARGE_RATE * 2;
+        canMerge = isLastVehicleReleased;
+      }
+      if (canMerge) { state.currentQueue = []; }
+      
+      let dischargeTime = arrivalTime;
+      let stopPosition = int.distance;
+      
+      if (i === intersections.length - 1) {
+        // 處理最後一個路口
+        if (isGreen && state.currentQueue.length === 0) {
+          // 信號為綠且無等待，直接通過
+          vehicle.trajectories.push({
+            type: "moving",
+            start: currentPosition,
+            end: int.distance,
+            startTime: currentTime,
+            endTime: arrivalTime
+          });
+          insertSorted(state.currentQueue, {
+            dischargeTime: arrivalTime,
+            vehicleIndex: vehicle.id,
+            canMerge: true
+          });
+          dischargeTime = arrivalTime;
+          currentPosition = int.distance;
+        } else {
+          // 遇紅燈或前方已有等待：先移動至等待區，再等待，等待結束後再移動到路口
+          const queueLength = state.currentQueue.filter(v => !v.canMerge).length;
+          stopPosition = int.distance - (queueLength * VEHICLE_LENGTH);
+          if (isRed && queueLength === 0) { stopPosition = int.distance; }
+          const stopDistance = int.distance - stopPosition;
+          const stopTime = arrivalTime - (stopDistance / speed);
+          vehicle.trajectories.push({
+            type: "moving",
+            start: currentPosition,
+            end: stopPosition,
+            startTime: currentTime,
+            endTime: stopTime
+          });
+          const queueEndTime = state.currentQueue.length > 0 
+              ? state.currentQueue[state.currentQueue.length - 1].dischargeTime 
+              : nextGreen;
+          dischargeTime = Math.max(
+            queueEndTime + DISCHARGE_RATE,
+            stopTime,
+            isRed ? nextGreen : 0
+          );
+          vehicle.trajectories.push({
+            type: "waiting",
+            position: stopPosition,
+            startTime: stopTime,
+            endTime: dischargeTime
+          });
+          insertSorted(state.currentQueue, {
+            dischargeTime,
+            vehicleIndex: vehicle.id,
+            canMerge: false
+          });
+          totalWaitingTime += dischargeTime - stopTime;
+          // 最後等待結束後，移動到路口
+          const finalMoveTime = (int.distance - stopPosition) / speed;
+          const finalArrivalTime = dischargeTime + finalMoveTime;
+          vehicle.trajectories.push({
+            type: "moving",
+            start: stopPosition,
+            end: int.distance,
+            startTime: dischargeTime,
+            endTime: finalArrivalTime
+          });
+          dischargeTime = finalArrivalTime;
+          currentPosition = int.distance;
+        }
+      } else if (((!canMerge && totalArrivals != 0) || isRed)) {
+        const queueLength = state.currentQueue.filter(v => !v.canMerge).length;
+        stopPosition = int.distance - (queueLength * VEHICLE_LENGTH);
+        if (isRed && queueLength === 0) { stopPosition = int.distance; }
+        const stopDistance = int.distance - stopPosition;
+        const stopTime = arrivalTime - (stopDistance / speed);
+        vehicle.trajectories.push({
+          type: "moving",
+          start: currentPosition,
+          end: stopPosition,
+          startTime: currentTime,
+          endTime: stopTime
+        });
+        const queueEndTime = canMerge ? arrivalTime : (state.currentQueue.length > 0 
+          ? state.currentQueue[state.currentQueue.length - 1].dischargeTime
+          : nextGreen);
+        dischargeTime = Math.max(
+          queueEndTime + (canMerge ? 0 : DISCHARGE_RATE),
+          stopTime,
+          isRed ? nextGreen : 0
+        );
+        vehicle.trajectories.push({
+          type: "waiting",
+          position: stopPosition,
+          startTime: stopTime,
+          endTime: dischargeTime
+        });
+        insertSorted(state.currentQueue, { 
+          dischargeTime, 
+          vehicleIndex: vehicle.id, 
+          canMerge: false 
+        });
+        totalWaitingTime += dischargeTime - stopTime;
+      } else {
+        vehicle.trajectories.push({
+          type: "moving",
+          start: currentPosition,
+          end: int.distance,
+          startTime: currentTime,
+          endTime: arrivalTime
+        });
+        insertSorted(state.currentQueue, { 
+          dischargeTime: arrivalTime, 
+          vehicleIndex: vehicle.id, 
+          canMerge: true 
+        });
+      }
+      
+      state.lastDischargeEnd = Math.max(state.lastDischargeEnd, dischargeTime);
+      if (isRed) {
+        state.currentQueue = state.currentQueue.filter(v => v.dischargeTime > currentTime);
+      }
+      currentTime = dischargeTime;
+      currentPosition = (isRed || !canMerge) ? stopPosition : int.distance;
+      state.dischargedVehicles++;
+    }
+    
+    // 最終判斷：只要車輛最後一段軌跡的終點等於最後一個路口，即視為到達
+    if (vehicle.trajectories.length > 0) {
+      const lastSeg = vehicle.trajectories[vehicle.trajectories.length - 1];
+      if (lastSeg.type === "moving" && lastSeg.end >= intersections[intersections.length - 1].distance) {
+        totalArrivals++;
+        vehicle.status = "arrived";
+      } else if (lastSeg.type === "waiting" && lastSeg.position === intersections[intersections.length - 1].distance) {
+        totalArrivals++;
+        vehicle.status = "arrived";
+      } else {
+        vehicle.status = "blocked";
+      }
+    } else {
+      vehicle.status = "blocked";
+    }
+  });
+  
+  return {
+    totalDepartures: vehicles.length - 1,
+    totalArrivals,
+    arrivalPercentage: vehicles.length > 0 ? ((totalArrivals / (vehicles.length - 1)) * 100).toFixed(1) : 0,
+    totalWaitingTime
+  };
+}
+
+
+
+function calculateVehicleStats_inBound(vehicles, intersections, speed, endTime) {
+  // 反轉路口：進城方向從最遠到最靠近城區
+  intersections = intersections.reverse();
+  const intersectionStates = intersections.map(() => ({
+    lastDischargeEnd: 0,
+    currentQueue: [],
+    dischargedVehicles: 0
+  }));
+  let totalArrivals = 0;
+  let totalWaitingTime = 0;
+  
+  vehicles.forEach((vehicle) => {
+    let currentTime = vehicle.departureTime;
+    // 起點為反轉後第一筆，即最遠路口
+    let currentPosition = intersections[0].distance;
+    vehicle.trajectories = [];
+    let isBlocked = false;
+    for (let i = 0; i < intersections.length; i++) {
+      const int = intersections[i];
+      const state = intersectionStates[i];
+      const distanceToIntersection = currentPosition - int.distance;
+      const moveTime = distanceToIntersection / speed;
+      const arrivalTime = currentTime + moveTime;
+      if (arrivalTime > endTime) { isBlocked = true; break; }
+      
+      const cycle = int.inG + int.inR;
+      const cycleStart = Math.floor((arrivalTime - int.offset) / cycle) * cycle + int.offset;
+      const phaseTime = arrivalTime - cycleStart;
+      const isRed = phaseTime >= int.inG || phaseTime < 0;
+      const isGreen = !isRed;
+      const nextGreen = isRed ? cycleStart + cycle : cycleStart;
+      
+      let canMerge = false;
+      if (state.currentQueue.length > 0) {
+        const lastVehicle = state.currentQueue[state.currentQueue.length - 1];
+        const isLastVehicleReleased = (arrivalTime - lastVehicle.dischargeTime) >= DISCHARGE_RATE * 2;
+        canMerge = isLastVehicleReleased;
+      }
+      if (canMerge) { state.currentQueue = []; }
+      
+      let dischargeTime = arrivalTime;
+      let stopPosition = int.distance;
+      
+      if (i === intersections.length - 1) {
+        // 處理最後一個路口（原本最靠近城區的路口）
+        if (isGreen && state.currentQueue.length === 0) {
+          vehicle.trajectories.push({
+            type: "moving",
+            start: currentPosition,
+            end: int.distance,
+            startTime: currentTime,
+            endTime: arrivalTime
+          });
+          insertSorted(state.currentQueue, {
+            dischargeTime: arrivalTime,
+            vehicleIndex: vehicle.id,
+            canMerge: true
+          });
+          dischargeTime = arrivalTime;
+          currentPosition = int.distance;
+        } else {
+          // 若信號為紅或前方已有等待，則先等待，再移動到路口
+          const queueLength = state.currentQueue.filter(v => !v.canMerge).length;
+          // 進城方向：停車位置位於路口處往前延伸（數值較大）
+          stopPosition = int.distance + (queueLength * VEHICLE_LENGTH);
+          if (isRed && queueLength === 0) { stopPosition = int.distance; }
+          const stopTime = currentTime + ((currentPosition - stopPosition) / speed);
+          vehicle.trajectories.push({
+            type: "moving",
+            start: currentPosition,
+            end: stopPosition,
+            startTime: currentTime,
+            endTime: stopTime
+          });
+          const queueEndTime = state.currentQueue.length > 0 
+              ? state.currentQueue[state.currentQueue.length - 1].dischargeTime 
+              : nextGreen;
+          dischargeTime = Math.max(
+            queueEndTime + DISCHARGE_RATE,
+            stopTime,
+            isRed ? nextGreen : 0
+          );
+          vehicle.trajectories.push({
+            type: "waiting",
+            position: stopPosition,
+            startTime: stopTime,
+            endTime: dischargeTime
+          });
+          insertSorted(state.currentQueue, {
+            dischargeTime,
+            vehicleIndex: vehicle.id,
+            canMerge: false
+          });
+          totalWaitingTime += dischargeTime - stopTime;
+          // 等候結束後，再移動到路口，並更新 currentPosition
+          const finalMoveTime = (stopPosition - int.distance) / speed;
+          const finalArrivalTime = dischargeTime + finalMoveTime;
+          vehicle.trajectories.push({
+            type: "moving",
+            start: stopPosition,
+            end: int.distance,
+            startTime: dischargeTime,
+            endTime: finalArrivalTime
+          });
+          dischargeTime = finalArrivalTime;
+          currentPosition = int.distance;
+        }
+      } else if (((!canMerge && totalArrivals !== 0) || isRed)) {
+        const queueLength = state.currentQueue.filter(v => !v.canMerge).length;
+        stopPosition = int.distance + (queueLength * VEHICLE_LENGTH);
+        if (isRed && queueLength === 0) { stopPosition = int.distance; }
+        const stopDistance = currentPosition - stopPosition;
+        const stopTime = currentTime + (stopDistance / speed);
+        vehicle.trajectories.push({
+          type: "moving",
+          start: currentPosition,
+          end: stopPosition,
+          startTime: currentTime,
+          endTime: stopTime
+        });
+        const queueEndTime = canMerge ? arrivalTime : (state.currentQueue.length > 0 ? state.currentQueue[state.currentQueue.length - 1].dischargeTime : nextGreen);
+        dischargeTime = Math.max(queueEndTime + (canMerge ? 0 : DISCHARGE_RATE), stopTime, isRed ? nextGreen : 0);
+        vehicle.trajectories.push({
+          type: "waiting",
+          position: stopPosition,
+          startTime: stopTime,
+          endTime: dischargeTime
+        });
+        insertSorted(state.currentQueue, { 
+          dischargeTime, 
+          vehicleIndex: vehicle.id, 
+          canMerge: false 
+        });
+        totalWaitingTime += dischargeTime - stopTime;
+      } else {
+        vehicle.trajectories.push({
+          type: "moving",
+          start: currentPosition,
+          end: int.distance,
+          startTime: currentTime,
+          endTime: arrivalTime
+        });
+        insertSorted(state.currentQueue, { 
+          dischargeTime: arrivalTime, 
+          vehicleIndex: vehicle.id, 
+          canMerge: true 
+        });
+      }
+      state.lastDischargeEnd = Math.max(state.lastDischargeEnd, dischargeTime);
+      if (isRed) {
+        state.currentQueue = state.currentQueue.filter(v => v.dischargeTime > currentTime);
+      }
+      currentTime = dischargeTime;
+      currentPosition = (isRed || (!canMerge && !(i === intersections.length - 1 && isGreen))) ? stopPosition : int.distance;
+      state.dischargedVehicles++;
+    }
+    
+    // 最終判斷：只要車輛最後一段軌跡的終點（或等待位置）等於最後一個路口，即視為到達
+    if (vehicle.trajectories.length > 0) {
+      const lastSeg = vehicle.trajectories[vehicle.trajectories.length - 1];
+      if (lastSeg.type === "moving" && lastSeg.end <= intersections[intersections.length - 1].distance) {
+        totalArrivals++;
+        vehicle.status = "arrived";
+      } else if (lastSeg.type === "waiting" && lastSeg.position === intersections[intersections.length - 1].distance) {
+        totalArrivals++;
+        vehicle.status = "arrived";
+      } else {
+        vehicle.status = "blocked";
+      }
+    } else {
+      vehicle.status = "blocked";
+    }
+  });
+  
+  return {
+    totalDepartures: vehicles.length - 1,
+    totalArrivals,
+    arrivalPercentage: vehicles.length > 0 ? ((totalArrivals / (vehicles.length - 1)) * 100).toFixed(1) : 0,
+    totalWaitingTime
+  };
+}
+
+
+function insertSorted(queue, newEntry) {
+  const index = queue.findIndex(v => v.dischargeTime > newEntry.dischargeTime);
+  if(index === -1) queue.push(newEntry);
+  else queue.splice(index, 0, newEntry);
+}
+
+function drawVehicleTrajectories(ctx, vehicles, intersections, speed, toCanvasX, toCanvasY) {
+  ctx.save();
+  ctx.lineWidth = 2;
+
+  // 繪製移動軌跡（漸變藍色）
+  const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+  gradient.addColorStop(0, "#1f3c88");
+  gradient.addColorStop(1, "#4a90e2");
+  ctx.strokeStyle = gradient;
+
+  vehicles.forEach(vehicle => {
+    vehicle.trajectories.forEach(t => {
+      if (t.type === "moving") {
+        ctx.beginPath();
+        ctx.moveTo(toCanvasX(t.startTime), toCanvasY(t.start));
+        ctx.lineTo(toCanvasX(t.endTime), toCanvasY(t.end));
+        ctx.stroke();
+      }
+    });
+  });
+
+  // 繪製等待軌跡（僅當等待秒數 > 0 時才繪製）
+  const waitGradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+  waitGradient.addColorStop(0, "#ff4444");
+  waitGradient.addColorStop(1, "#ff8888");
+  ctx.strokeStyle = waitGradient;
+
+  vehicles.forEach(vehicle => {
+    vehicle.trajectories.forEach(t => {
+      if (t.type === "waiting") {
+        // 檢查等待時間是否大於 0
+        if (t.endTime - t.startTime > 0) {
+          ctx.beginPath();
+          ctx.moveTo(toCanvasX(t.startTime), toCanvasY(t.position));
+          ctx.lineTo(toCanvasX(t.endTime), toCanvasY(t.position));
+          ctx.stroke();
+          
+          // 繪製等待標記（紅點）
+          ctx.beginPath();
+          ctx.arc(toCanvasX(t.startTime), toCanvasY(t.position), 3, 0, Math.PI*2);
+          ctx.fillStyle = "#dd0000";
+          ctx.fill();
+        }
+      }
+    });
+  });
+
+  ctx.restore();
+}
+
+
+function updateStatsDisplay(stats) {
+	document.getElementById('totalDepartures').textContent = stats.totalDepartures;
+	document.getElementById('totalArrivals').textContent = stats.totalArrivals;
+	document.getElementById('arrivalPercentage').textContent = stats.arrivalPercentage + "%";
+	document.getElementById('totalWaitingTime').textContent = typeof stats.totalWaitingTime === 'number' ? stats.totalWaitingTime.toFixed(1) + "s" : "0.0s";
+}
+
+function updateStatsDisplay_inbound(stats) {
+	document.getElementById('totalDepartures_inbound').textContent = stats.totalDepartures;
+	document.getElementById('totalArrivals_inbound').textContent = stats.totalArrivals;
+	document.getElementById('arrivalPercentage_inbound').textContent = stats.arrivalPercentage + "%";
+	document.getElementById('totalWaitingTime_inbound').textContent = typeof stats.totalWaitingTime === 'number' ? stats.totalWaitingTime.toFixed(1) + "s" : "0.0s";
+}
+
+let animationData = [];
+let currentAnimationFrame = 0;
+let animationInterval = null;
+let timeAxisYPosition = 0;
+let currentSpeed = 1;
+let isAnimating = false;
+
+
+
+function startAnimation() {
+  const mainCanvas = document.getElementById("timeSpaceCanvas");
+  const animationCanvas = document.getElementById("animationCanvas");
+  const ctx = animationCanvas.getContext("2d");
+  const intersections = readIntersectionsFromTable();
+  const endTime = parseInt(document.getElementById("timeRangeInput").value);
+  animationCanvas.height = mainCanvas.height;
+  animationCanvas.width = 100;
+  if (!intersections.length || !window.currentVehicles) {
+    alert("請先繪製時空圖並生成車輛！");
+    return;
+  }
+  animationData = [];
+  const totalDistance = intersections[intersections.length-1].distance;
+  if(animationInterval) {
+    clearInterval(animationInterval);
+    animationInterval = null;
+  }
+  currentSpeed = parseInt(document.getElementById("playbackSpeed").value) || 1;
+  const frameDuration = 1000 / currentSpeed;
+  if(!animationData.length){
+    animationData = [];
+    for (let t = 0; t <= endTime; t++) {
+      const frameData = [];
+      window.currentVehicles.forEach(vehicle => {
+        let position = calculateVehiclePosition(vehicle, t, totalDistance);
+        frameData.push(position);
+      });
+      animationData.push(frameData);
+    }
+  }
+  isAnimating = true;
+  let lastFrameTime = Date.now();
+  let accumulatedTime = 0;
+  function animationLoop() {
+    if(!isAnimating) return;
+    const now = Date.now();
+    const deltaTime = now - lastFrameTime;
+    lastFrameTime = now;
+    accumulatedTime += deltaTime;
+    const framesToProcess = Math.floor(accumulatedTime / frameDuration);
+    if(framesToProcess > 0){
+      accumulatedTime -= framesToProcess * frameDuration;
+      for(let i=0; i<framesToProcess; i++){
+        if(currentAnimationFrame >= endTime){
+          stopAnimation();
+          return;
+        }
+        drawAnimationFrame(ctx, intersections, totalDistance);
+        currentAnimationFrame++;
+      }
+    }
+    requestAnimationFrame(animationLoop);
+  }
+  animationLoop();
+}
+
+function stopAnimation() {
+  isAnimating = false;
+  if(animationInterval) clearInterval(animationInterval);
+  animationInterval = null;
+}
+
+function calculateVehiclePosition(vehicle, currentTime, totalDistance) {
+  if (currentTime < vehicle.departureTime) return null;
+  let position = 0;
+  let elapsed = vehicle.departureTime;
+  for (const seg of vehicle.trajectories) {
+    if (currentTime <= seg.endTime) {
+      if (seg.type === "moving") {
+        const progress = (currentTime - seg.startTime)/(seg.endTime - seg.startTime);
+        position = seg.start + (seg.end - seg.start) * progress;
+      } else {
+        position = seg.position;
+      }
+      break;
+    }
+    position = seg.type === "moving" ? seg.end : seg.position;
+  }
+  if (vehicle.status === "arrived" && currentTime >= vehicle.trajectories.slice(-1)[0].endTime) {
+    position = totalDistance;
+  }
+  return position;
+}
+
+function drawAnimationFrame(ctx, intersections, totalDistance) {
+  const canvas = ctx.canvas;
+  const H = canvas.height;
+  const W = canvas.width;
+  const originY = timeAxisYPosition;
+  const currentTime = currentAnimationFrame;
+  ctx.clearRect(0, 0, W, H);
+  ctx.save();
+  ctx.strokeStyle = "#666";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(W/2, originY);
+  ctx.lineTo(W/2, originY - (H-80));
+  ctx.stroke();
+  const delta = 0;
+  intersections.forEach(ints => {
+    const baseY = originY - (ints.distance/totalDistance)*(H-80);
+    // 出城信號線（下方）
+    const cycleOut = ints.outG + ints.outR;
+    const phaseOut = ((currentTime - ints.offset + cycleOut) % cycleOut);
+    const colorOut = phaseOut < ints.outG ? "#4CAF50" : "#F44336";
+    ctx.strokeStyle = colorOut;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(W/2-0, baseY + delta);
+    ctx.lineTo(W/2+15, baseY + delta);
+    ctx.stroke();
+    // 進城信號線（上方）
+    const cycleIn = ints.inG + ints.inR;
+    const phaseIn = ((currentTime - ints.offset + cycleIn) % cycleIn);
+    const colorIn = phaseIn < ints.inG ? "#4CAF50" : "#F44336";
+    ctx.strokeStyle = colorIn;
+    ctx.beginPath();
+    ctx.moveTo(W/2-0, baseY - delta);
+    ctx.lineTo(W/2-15, baseY - delta);
+    ctx.stroke();
+    ctx.fillStyle = "#000";
+    ctx.fillText(ints.name, W/2+20, baseY+3);
+  });
+  const currentPositions = animationData[currentAnimationFrame];
+  let direction = document.getElementById("directionSelect").value;
+  let xOffset = 25;
+  currentPositions.forEach((pos, index) => {
+    if (pos === null) return;
+    const vehicle = window.currentVehicles[index];
+    const y = originY - (pos/totalDistance)*(H-80);
+    let xOffset, color;
+    if (vehicle.direction === 'outbound') {
+      xOffset = 25;
+      color = "#1f3c88";
+    } else {
+      xOffset = -25;
+      color = "#ff6600";
+    }
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(W/2 + xOffset, y, 4, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.fillStyle = "#333";
+  ctx.font = "bold 16px Arial";
+  ctx.fillText(`時間：${currentAnimationFrame} 秒 (${currentSpeed}x)`, 10, 25);
+  ctx.restore();
+}
+
+function onCanvasMouseMove(e) {
+  const showCoord = document.getElementById("showMouseCoordCheck").checked;
+  const coordDiv  = document.getElementById("coordDisplay");
+  if (!showCoord) {
+    coordDiv.style.display = "none";
+    return;
+  }
+  const canvas = e.currentTarget;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mouseX = (e.clientX - rect.left) * scaleX;
+  const mouseY = (e.clientY - rect.top) * scaleY;
+  const intersections = readIntersectionsFromTable(); 
+  if (!intersections || intersections.length < 1) {
+    coordDiv.style.display = "none";
+    return;
+  }
+  let maxCycle = 0;
+  intersections.forEach(o => {
+    const cyc = Math.max(o.outG+o.outR, o.inG+o.inR);
+    if (cyc > maxCycle) maxCycle = cyc;
+  });
+  const cycleMultiple = parseFloat(document.getElementById("cycleMultipleInput").value) || 2;
+  const tMax = maxCycle * cycleMultiple;
+  const totalDistance = intersections[intersections.length - 1].distance;
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+  function fromCanvasX(px) {
+    return ((px - 40) / (canvasWidth - 80)) * tMax;
+  }
+  function fromCanvasY(py) {
+    return (((canvasHeight - 40) - py) / (canvasHeight - 80)) * totalDistance;
+  }
+  const timeVal = fromCanvasX(mouseX);
+  const distVal = fromCanvasY(mouseY);
+  coordDiv.textContent = `(${timeVal.toFixed(1)}s, ${distVal.toFixed(1)}m)`;
+  coordDiv.style.left = (e.clientX + 3) + "px";
+  coordDiv.style.top = (e.clientY + 3) + "px";
+  coordDiv.style.display = "block";
+}
+
+/* ============================================================================
+   5. 遮罩與 Spinner
+============================================================================ */
+function showOverlay(){
+  document.getElementById("loadingOverlay").style.display = "block";
+}
+function hideOverlay(){
+  document.getElementById("loadingOverlay").style.display = "none";
+}
+
+/* ============================================================================
+   6. 目標函式
+============================================================================ */
+function computeObjectiveAndRatio(intersections, ratioGoal, alpha){
+  const outW = computeGreenBandWidth('outbound', intersections, readSpeedMps());
+  const inW = computeGreenBandWidth('inbound', intersections, readSpeedMps());
+  const sumVal = outW + inW;
+  let ratioVal = 1;
+  if(inW <= 0 && outW > 0){
+    ratioVal = 999999;
+  } else if(inW <= 0 && outW <= 0){
+    ratioVal = 1;
+  } else {
+    ratioVal = outW / inW;
+  }
+  const diff = ratioVal - ratioGoal;
+  const penalty = diff * diff;
+  const objective = sumVal - alpha * penalty;
+  return { outW, inW, sumVal, ratioVal, objective };
+}
+
+function computeGreenBandWidth(direction, intersections, speed){
+  if(!intersections || intersections.length === 0) return 0;
+  const cycles = intersections.map(i => {
+    return direction === 'outbound' ? (i.outG + i.outR) : (i.inG + i.inR);
+  });
+  const bigCycle = lcmOfArray(cycles);
+  const searchMax = Math.min(bigCycle, 3000);
+  const step = 0.1;
+  const feasibleT0 = [];
+  for(let t0=0; t0<= searchMax; t0+= step){
+    if(direction === 'outbound'){
+      if(checkAllGreenOutbound(intersections, speed, t0)) feasibleT0.push(t0);
+    } else {
+      if(checkAllGreenInbound(intersections, speed, t0)) feasibleT0.push(t0);
+    }
+  }
+  if(feasibleT0.length === 0) return 0;
+  let maxWidth = 0;
+  let start = feasibleT0[0];
+  let prev = start;
+  for(let i=1; i< feasibleT0.length; i++){
+    if(feasibleT0[i] - feasibleT0[i-1] > 1.1 * step){
+      const w = prev - start;
+      if(w > maxWidth) maxWidth = w;
+      start = feasibleT0[i];
+    }
+    prev = feasibleT0[i];
+  }
+  const last = prev - start;
+  if(last > maxWidth) maxWidth = last;
+  return maxWidth;
+}
+
+/* ============================================================================
+   7. 優化入口
+============================================================================ */
+let objectiveHistory = [];
+let ratioHistory = [];
+async function optimizeOffsets(){
+  showOverlay();
+  document.getElementById("finalSumVal").textContent = "--";
+  document.getElementById("finalOutInRatio").textContent = "--";
+  const algo = document.getElementById("algorithmSelect").value;
+  if(algo === "exact"){
+    await optimizeOffsetsExact();
+  } else if(algo === "heuristic"){
+    await optimizeOffsetsHeuristic();
+  } else if(algo === "genetic"){
+    await optimizeOffsetsGenetic();
+  }
+  hideOverlay();
+}
+  </script>
+</head>
+<body>
+  <header>
+    <h4>GreenFlow Corridor, Arterial Traffic Signal Time-Space Diagram</h4>
+    <div class="author"></div>
+  </header>
+  <!-- Container includes left panel, divider, and right panel -->
+  <div class="container">
+    <div id="leftPanel">
+      <!-- Left panel content, such as global controls and intersection table -->
+      <div class="controls-group">
+        <div class="controls-inline">
+          <label>Speed (km/h):
+            <input type="number" id="speedInputKmh" value="60" step="1" min="1">
+          </label>
+        </div>
+        <div class="controls-inline">
+          <label>Outbound/Inbound Bandwidth Ratio:
+            <input type="number" id="ratioGoalInput" value="1.0" step="0.1">
+          </label>
+        </div>
+        <div class="controls-inline">
+          <label>Algorithm:
+            <select id="algorithmSelect">
+              <option value="genetic">Genetic Algorithm</option>
+              <!--<option value="heuristic">Heuristic</option>
+              <option value="exact">Exact</option>-->
+            </select>
+          </label>
+        </div>
+        <button id="optimizeOffsetsBtn" class="button_green">Optimize Offset</button>
+      </div>
+      <!-- Intersection Data Table -->
+      <div class="controls-group">
+        <h4>Intersection Data</h4>
+        <div class="table-container">
+          <table id="intersectionTable" onchange="drawTimeSpaceDiagram()">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Intersection Name</th>
+                <th>Cumulative Distance (m)</th>
+                <th>Outbound Green Time</th>
+                <th>Outbound Red Time</th>
+                <th>Inbound Green Time</th>
+                <th>Inbound Red Time</th>
+                <th>Offset</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="intersectionTableBody">
+              <!-- Data dynamically inserted -->
+            </tbody>
+          </table>
+        </div>
+        <div class="controls-inline">
+          <button id="addRowBtn">Add Intersection</button>
+          <button id="exportJsonBtn">Export File</button>
+          <button id="importJsonBtn">Import File</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div id="divider"></div>
+
+    <!-- Right Panel -->
+    <div id="rightPanel">
+      <!-- Right panel content, including canvas and information area -->
+      <div class="canvas-wrapper">
+        <div class="canvas-section flex">
+          <canvas id="timeSpaceCanvas" width="800" height="600"></canvas>
+          <div class="canvas-controls">
+            <div class="controls-inline nowrap">
+              <label><input type="checkbox" id="showChuchengCheck" onchange="drawTimeSpaceDiagram()" checked> Show Outbound Bandwidth</label>
+              <label><input type="checkbox" id="showJinchengCheck" onchange="drawTimeSpaceDiagram()" checked> Show Inbound Bandwidth</label>
+              <label><input type="checkbox" id="showMouseCoordCheck" onchange="drawTimeSpaceDiagram()"> Show Coordinates</label>
+              <button id="animateButton">Play Animation</button>
+            </div>
+            <div class="controls-inline nowrap">
+              <label>Observation Cycle Multiplier:
+                <input type="number" id="cycleMultipleInput" onchange="drawTimeSpaceDiagram()" value="2" step="1" min="1">
+              </label>
+              <label>Departure Interval(sec):
+                <input type="number" id="intervalInput" onchange="drawTimeSpaceDiagram()" value="5" step="1" min="1">
+              </label>			  
+              <label>Animation Duration(sec):
+                <input type="text" id="timeRangeInput" onchange="drawTimeSpaceDiagram()" value="300">
+              </label>
+              <label>Vehicle Trajectories:
+                <select id="directionSelect" onchange="drawTimeSpaceDiagram()">
+                  <option value="outbound">Outbound Vehicles</option>
+                  <option value="inbound">Inbound Vehicles</option>
+                  <option value="both">Both Directions</option>
+                  <option value="none" selected>None</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="canvas-section fixed">
+          <canvas id="animationCanvas" width="100" height="500"></canvas>
+          <div class="canvas-controls">
+            <div class="animation-controls">
+              <label>Speed Up:
+                <select id="playbackSpeed" style="width:50px;">
+                  <option value="1">1x</option>
+                  <option value="2">2x</option>
+                  <option value="3">3x</option>
+                  <option value="4">4x</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lower Information Area -->
+      <div class="info-area">
+        <div id="bound_info">
+          <h3>Green Bandwidth Information</h3>
+          <div id="chuchengWidthBlock">
+            Maximum Outbound Green Bandwidth: <span id="greenBandChucheng">--</span> sec
+          </div>
+          <div id="jinchengWidthBlock">
+            Maximum Inbound Green Bandwidth: <span id="greenBandJincheng">--</span> sec
+          </div>
+          Final (Outbound + Inbound) Total: <span id="finalSumVal">--</span> sec
+          <br>
+          Final (Outbound/Inbound) Ratio: <span id="finalOutInRatio">--</span>
+        </div>
+      </div>
+      <div class="info-area">
+        <div id="stats">
+          <h3>Vehicle Statistics (Outbound)</h3>
+          <p>Total Departures: <span id="totalDepartures">0</span></p>
+          <p>Total Arrivals: <span id="totalArrivals">0</span></p>
+          <p>Arrival Percentage: <span id="arrivalPercentage">0%</span></p>
+          <p>Total Waiting Time: <span id="totalWaitingTime">0</span> sec</p>
+        </div>
+        <div id="stats_inbound">
+          <h3>Vehicle Statistics (Inbound)</h3>
+          <p>Total Departures: <span id="totalDepartures_inbound">0</span></p>
+          <p>Total Arrivals: <span id="totalArrivals_inbound">0</span></p>
+          <p>Arrival Percentage: <span id="arrivalPercentage_inbound">0%</span></p>
+          <p>Total Waiting Time: <span id="totalWaitingTime_inbound">0</span> sec</p>
+        </div>
+      </div>
+      <div class="info-area">
+        <div id="stats3">
+          <h3>Optimization Process Curve</h3>
+          <canvas id="chartObjective" width="400" height="200"></canvas>
+          <canvas id="chartRatio" width="400" height="200"></canvas>
+          <div class="stats-area" id="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="coordDisplay"></div>
+  <div id="loadingOverlay">
+    <div id="loadingSpinner"></div>
+  </div>
+  <script>
+/* 其餘繪圖、動畫、統計等輔助函數與上文保持一致 */
+
+document.getElementById("animateButton").addEventListener("click", function() {
+  if(isAnimating) {
+    stopAnimation();
+    this.textContent = "Play Animation";
+  } else {
+    startAnimation();
+    this.textContent = "Stop Animation";
+  }
+});
+document.getElementById("playbackSpeed").addEventListener("change", function() {
+  if(isAnimating) {
+    const wasAnimating = isAnimating;
+    const currentFrame = currentAnimationFrame;
+    stopAnimation();
+    currentAnimationFrame = currentFrame;
+    if(wasAnimating) startAnimation();
+  }
+});
+
+function drawChartObjective(objArray){
+  const canvas= document.getElementById("chartObjective");
+  if(!canvas) return;
+  const ctx= canvas.getContext("2d");
+  const W= canvas.width, H= canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // 1. 找到max/min
+  let minObj= Infinity, maxObj= -Infinity;
+  objArray.forEach(v=>{
+    if(v< minObj) minObj=v;
+    if(v> maxObj) maxObj=v;
+  });
+  if(minObj===maxObj) { 
+    minObj-=1; maxObj+=1; 
+  }
+
+  // 2. 座標轉換
+  function toX(i){
+    return 40+ i*(W-80)/(objArray.length-1);
+  }
+  function toY(val){
+    return (H-40) - (val - minObj)/(maxObj - minObj)*(H-80);
+  }
+
+  // 3. 畫框線
+  ctx.strokeStyle="#999";
+  ctx.strokeRect(40,40, W-80, H-80);
+
+  // 4. 畫線
+  ctx.strokeStyle="blue";
+  ctx.beginPath();
+  for(let i=0; i< objArray.length; i++){
+    const x= toX(i);
+    const y= toY(objArray[i]);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // 5. 畫座標刻度(簡略)
+  ctx.fillStyle="#000";
+  // y軸 minObj, maxObj
+  ctx.fillText(minObj.toFixed(1), 5, toY(minObj));
+  ctx.fillText(maxObj.toFixed(1), 5, toY(maxObj));
+  // x軸 0, end
+  ctx.fillText("0", 40, H-20);
+  ctx.fillText(objArray.length-1, toX(objArray.length-1), H-20);
+  ctx.fillText("Objective", W-60, 50);
+}
+
+function drawChartRatio(ratioArray, ratioGoal){
+  const canvas= document.getElementById("chartRatio");
+  if(!canvas) return;
+  const ctx= canvas.getContext("2d");
+  const W= canvas.width, H= canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // 1. 找min, max
+  let minR= Infinity, maxR= -Infinity;
+  ratioArray.forEach(v=>{
+    if(v< minR) minR=v;
+    if(v> maxR) maxR=v;
+  });
+  // 把 ratioGoal 也納進 min/max
+  if(ratioGoal< minR) minR= ratioGoal;
+  if(ratioGoal> maxR) maxR= ratioGoal;
+
+  if(minR===maxR) { minR-=1; maxR+=1; }
+
+  function toX(i){
+    return 40+ i*(W-80)/(ratioArray.length-1);
+  }
+  function toY(val){
+    return (H-40) - (val - minR)/(maxR - minR)*(H-80);
+  }
+
+  // 畫框
+  ctx.strokeStyle="#999";
+  ctx.strokeRect(40,40, W-80, H-80);
+
+  // 畫線(折線)
+  ctx.strokeStyle="green";
+  ctx.beginPath();
+  for(let i=0; i< ratioArray.length; i++){
+    const x= toX(i);
+    const y= toY(ratioArray[i]);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // 畫水平紅線
+  const yGoal= toY(ratioGoal);
+  ctx.strokeStyle="red";
+  ctx.beginPath();
+  ctx.moveTo(40, yGoal);
+  ctx.lineTo(W-40, yGoal);
+  ctx.stroke();
+
+  // 座標刻度(簡略)
+  ctx.fillStyle="#000";
+  ctx.fillText(minR.toFixed(2), 5, toY(minR));
+  ctx.fillText(maxR.toFixed(2), 5, toY(maxR));
+  ctx.fillText("0", 40, H-20);
+  ctx.fillText(ratioArray.length-1, toX(ratioArray.length-1), H-20);
+  ctx.fillText("Ratio", W-50, 50);
+}
+
+    // 以下為調整左右面板寬度的分隔線拖曳功能
+    document.addEventListener("DOMContentLoaded", () => {
+      const divider = document.getElementById('divider');
+      const leftPanel = document.getElementById('leftPanel');
+      const container = document.querySelector('.container');
+      
+      let isDragging = false;
+      
+      divider.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault(); // 防止選取文字
+      });
+      
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        const containerRect = container.getBoundingClientRect();
+        let newWidth = e.clientX - containerRect.left;
+        // 設定最小寬度及最大寬度限制
+        if (newWidth < 100) newWidth = 100;
+        if (newWidth > containerRect.width - 100) newWidth = containerRect.width - 100;
+        leftPanel.style.width = newWidth + 'px';
+      });
+      
+      document.addEventListener('mouseup', function(e) {
+        if (isDragging) {
+          isDragging = false;
+          document.body.style.cursor = 'default';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
