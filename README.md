@@ -1,20 +1,20 @@
 # 綠行幹道(GreenFlow-Corridor)
 主幹道交通號誌時空圖模擬器 (Traffic Signal Time-Space Diagram Simulator)
 
-本模擬器是一個互動式交通號誌時空圖模擬系統，旨在以時制計畫呈現主幹道路各路口的號誌配時狀態，以及車輛在路口間的行駛與等待情形。  
-This simulator is an interactive system that displays the timing plan status of traffic signals along a main road and simulates vehicle movements and waiting behaviors between intersections based on a timing plan.
+本模擬器是一個互動式交通號誌時空圖模擬系統，呈現主幹道路各路口的號誌時制狀態及優化時差，並以中觀模擬車輛在路口間的行駛與等待情形。  
+This simulator is an interactive traffic signal time-space diagram simulation system that visualizes the signal timing plans and optimized offsets at intersections along a main corridor. It also provides a mesoscopic simulation of vehicle movements and waiting conditions between intersections.
 
 ---
 
 ## 功能介紹 (Features)
 
 ### 時空圖繪製 (Time-Space Diagram Drawing)
-利用 HTML5 Canvas 繪製以時間為 X 軸、距離為 Y 軸的時空圖，直觀展示各交叉口的號誌狀態與車輛運行軌跡。  
-The simulator uses HTML5 Canvas to draw a time-space diagram (time on the X-axis and distance on the Y-axis) that visually presents the signal status at intersections and the trajectories of vehicles.
+利用 HTML5 Canvas 繪製以時間為 X 軸、距離為 Y 軸的時空圖，直觀展示各交叉口的號誌狀態、綠燈帶寬與車輛運行軌跡。  
+The simulator uses HTML5 Canvas to draw a time-space diagram with time on the X-axis and distance on the Y-axis, visually presenting the signal status at intersections, green band widths, and vehicle movement trajectories.
 
 ### 車輛模擬與時制計畫 (Vehicle Simulation & Timing Plan)
-根據各交叉口所設定的綠燈／紅燈秒數與時差，系統模擬車輛在路口間的行駛、等待與排隊情形，並以「時制計畫」方式呈現號誌配時。  
-Based on the timing plan for each intersection (with defined green/red durations and offsets), the simulator models the movement, waiting, and queuing of vehicles between intersections using a timing plan approach.
+根據各交叉口所設定的綠燈／紅燈秒數與時差，系統模擬車輛在路口間的行駛、等待與排隊情形，並以「時制計畫」方式呈現進城與出城綠燈帶寬。  
+Based on the green/red durations and offsets set for each intersection, the system simulates vehicle movement, waiting, and queuing between intersections, presenting the inbound and outbound green band widths using a timing plan approach.
 
 ### 出城與進城方向 (Outbound and Inbound Directions)
 - **出城方向 (Outbound):** 時空圖中車輛軌跡與綠燈帶呈現向上延伸。  
@@ -26,8 +26,8 @@ For the simulation, the outbound direction displays trajectories extending upwar
 The diagram automatically updates whenever parameters on the left panel are changed, with no need to click an update button.
 
 ### 動畫播放 (Animation Playback)
-播放動畫後，您可以觀察車輛依照時制計畫在各交叉口間的動態行駛、等待與排隊情形。  
-Once the animation is started, you can observe the dynamic movement and waiting behavior of vehicles between intersections according to the timing plan.
+請先選擇車輛軌跡的選項，然後播放動畫，即可觀察車輛依照時制計畫在各交叉口間的動態行駛、等待與排隊情形。
+First, select the vehicle trajectory option, then start the animation to observe the dynamic movement, waiting, and queuing behavior of vehicles between intersections according to the timing plan.
 
 ### JSON 匯入／匯出 (JSON Import/Export)
 您可以將全域參數（例如車速、發車間隔、出／進城帶寬比值）及各交叉口資料以 JSON 格式匯出，或從 JSON 檔案中匯入設定。  
@@ -42,8 +42,8 @@ A built-in Genetic Algorithm automatically optimizes the offsets between interse
 ## 操作流程 (Usage Workflow)
 
 ### 1. 開啟網頁 / Open the Webpage  
-以瀏覽器開啟 `index.html`，系統自動載入左側參數設定區與右側的時空圖及動畫區。  
-Open `index.html` in your browser; the interface loads with the configuration panel on the left and the diagram and animation area on the right.
+以瀏覽器開啟 `GreenFlow-Corridor_綠行幹道.html`，系統自動載入左側參數設定區與右側的時空圖及動畫區。  
+Open `GreenFlow-Corridor_en.html` in your browser; the interface loads with the configuration panel on the left and the diagram and animation area on the right.
 
 ### 2. 參數設定 / Configure Parameters  
 在左側面板中依序設定：  
